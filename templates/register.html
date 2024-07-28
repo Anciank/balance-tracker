@@ -1,0 +1,50 @@
+<!-- templates/register.htmx -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/htmx.min.js"></script>
+    <script src="/tailwind.js"></script>
+    <title>Balance Tracker</title>
+  </head>
+  <body class="bg-gray-100">
+    <div class="container mx-auto p-4 pt-6 md:p-6 lg:p-12 xl:p-24">
+      <form action="/register" method="post" class="bg-white shadow-md rounded-lg p-4">
+        <h2 class="text-2xl font-bold mb-4">Register</h2>
+        <label for="username" class="block text-lg font-bold mb-2">Username:</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          class="block w-full p-2 pl-10 text-lg border border-gray-400 rounded-lg focus:outline-none focus:ring focus:border-blue-500"
+        />
+        <br />
+        <label for="password" class="block text-lg font-bold mb-2">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          class="block w-full p-2 pl-10 text-lg border border-gray-400 rounded-lg focus:outline-none focus:ring focus:border-blue-500"
+        />
+        <br />
+        <input
+          type="submit"
+          value="Register"
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring focus:border-blue-500 w-full mt-4"
+        />
+      </form>
+
+      {{ if .Error }}
+      <p class="text-red-500 mt-4">{{ .Error }}</p>
+      {{ end }}
+
+      <p class="mt-4">
+        Already have an account?
+        <a href="/login" class="text-blue-500 hover:text-blue-700">Login here</a>
+      </p>
+    </div>
+  </body>
+</html>
