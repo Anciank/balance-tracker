@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 
 	"balance-tracker/models"
 )
@@ -86,4 +87,17 @@ func (r *BalanceRepository) GetBalancesByUserID(userID int) ([]models.Balance, e
 	}
 
 	return balances, nil
+}
+
+func (r *BalanceRepository) GetLastBalanceByUserID(userID int) (models.Balance, error) {
+	var balance models.Balance
+	err := r.db.QueryRow("SELECT * FROM balances WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1", userID).
+		Scan(&balance.ID, &balance.UserID, &balance.Amount, &balance.CreatedAt, &balance.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.Balance{}, errors.New("no balance found for user")
+		}
+		return models.Balance{}, err
+	}
+	return balance, nil
 }

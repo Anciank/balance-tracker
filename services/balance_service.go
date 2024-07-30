@@ -3,6 +3,7 @@ package services
 import (
 	"balance-tracker/models"
 	"balance-tracker/repositories"
+	"log"
 )
 
 type BalanceService struct {
@@ -43,7 +44,34 @@ func (s *BalanceService) GetLastBalance() (models.Balance, error) {
 	return balance, err
 }
 
+func (s *BalanceService) GetLastBalanceByUserID(userID int) (models.Balance, error) {
+	balance, err := s.balanceRepository.GetLastBalanceByUserID(userID)
+	return balance, err
+}
+
 func (s *BalanceService) GetBalancesByUserID(userID int) ([]models.Balance, error) {
 	balances, err := s.balanceRepository.GetBalancesByUserID(userID)
 	return balances, err
+}
+
+func (s *BalanceService) CreateNewTransactionByID(userID int, amount int) (models.Balance, error) {
+	lastBalance, err := s.balanceRepository.GetLastBalanceByUserID(userID)
+	if err != nil {
+		log.Println(err)
+		return models.Balance{}, err
+	}
+
+	newBalance := models.Balance{
+		UserID:    lastBalance.UserID,
+		Amount:    lastBalance.Amount + float64(amount),
+		CreatedAt: lastBalance.CreatedAt,
+	}
+
+	err = s.CreateBalance(newBalance)
+	if err != nil {
+		log.Println(err)
+		return models.Balance{}, err
+	}
+
+	return newBalance, nil
 }

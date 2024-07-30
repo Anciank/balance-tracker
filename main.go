@@ -102,6 +102,8 @@ func main() {
 	server.HandleFunc("/", authMiddleware(pageHandler.HandleIndexPage))
 	server.HandleFunc("/htmx.min.js", pageHandler.HandleHtmxServe)
 	server.HandleFunc("/tailwind.js", pageHandler.HandleTailwindServe)
+	server.HandleFunc("/static/*", pageHandler.HandleStaticServe)
+	server.HandleFunc("/create-transaction", authMiddleware(balanceHandler.CreateTransaction))
 
 	// Start HTTP server
 	log.Println("Server listening on port 8080")

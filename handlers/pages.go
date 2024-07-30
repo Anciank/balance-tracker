@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 )
 
@@ -92,4 +93,29 @@ func (h *PageHandler) HandleTailwindServe(w http.ResponseWriter, r *http.Request
 	}
 	filePath := filepath.Join(wd, "public", "tailwind.js")
 	http.ServeFile(w, r, filePath)
+}
+
+func (h *PageHandler) HandleStaticServe(w http.ResponseWriter, r *http.Request) {
+	// Get the file path from the URL
+	filePath := r.URL.Path
+
+	// Remove the /static/ prefix from the file path
+	filePath = strings.TrimPrefix(filePath, "/static/")
+
+	// Define the two directories to search for the file
+	dirs := []string{"templates/components/", "public/"}
+
+	// Loop through the directories and try to find the file
+	for _, dir := range dirs {
+		file, err := os.Open(dir + filePath)
+		if err == nil {
+			// File found, serve it
+			defer file.Close()
+			http.ServeFile(w, r, file.Name())
+			return
+		}
+	}
+
+	// File not found in either directory, return 404
+	http.Error(w, "File not found", http.StatusNotFound)
 }

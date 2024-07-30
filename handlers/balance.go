@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -90,7 +89,7 @@ func (h *BalanceHandler) CreateBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance, err := h.balanceService.GetLastBalance()
+	balance, err := h.balanceService.GetLastBalanceByUserID(userID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -98,12 +97,8 @@ func (h *BalanceHandler) CreateBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl := template.Must(template.ParseFiles("templates/components/balanceCard.html"))
-	var buf bytes.Buffer
-	buf.WriteString(`<div id="new-balance-card" class="mt-8"></div>`)
-	tmpl.Execute(&buf, balance)
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(buf.Bytes())
+	tmpl.Execute(w, balance)
 
 }
 
@@ -130,4 +125,54 @@ func (h *BalanceHandler) DeleteBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *BalanceHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(int)
+
+	earn, err := strconv.Atoi(r.FormValue("earn"))
+	if err != nil {
+		http.Error(w, "Invalid earn value", http.StatusBadRequest)
+		return
+	}
+
+	expense, err := strconv.Atoi(r.FormValue("expense"))
+	if err != nil {
+		http.Error(w, "Invalid expense value", http.StatusBadRequest)
+		return
+	}
+
+	amount := earn - expense
+
+	balance, err := h.balanceService.CreateNewTransactionByID(userID, amount)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Return the balanceCard.html template
+	tmpl, err := template.ParseFiles("templates/components/balanceCard.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		Amount    float64
+		CreatedAt string
+		ID        int
+	}{
+		Amount:    balance.Amount,
+		CreatedAt: balance.CreatedAt,
+		ID:        balance.ID,
+	}
+	log.Println(data)
+
+	// if err := tmpl.Execute(w, data); err != nil {
+	// 	log.Println(err)
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	w.WriteHeader(http.StatusOK)
+	tmpl.Execute(w, data)
 }
